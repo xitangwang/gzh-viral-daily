@@ -1,0 +1,103 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>爆款文案拆解工具 · 公众号爆款拆解日报</title><meta name="description" content=""><style>
+*{box-sizing:border-box}body{margin:0;font:16px/1.75 -apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f6f3ee;color:#2f2a25}
+a{color:#7a5c3e}.wrap{max-width:860px;margin:0 auto;padding:16px}
+header.top{background:linear-gradient(135deg,#e9dccb,#d9e6dc);padding:22px 16px 18px}header.top .wrap{padding:0 16px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:#6b6157;font-size:14px}nav.nv{margin-top:10px;font-size:14px}nav.nv a{margin-right:14px}
+.card{background:#fff;border-radius:14px;padding:16px 18px;margin:14px 0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h2{font-size:19px;margin:0 0 6px;line-height:1.45}.meta{font-size:13px;color:#7b7067}.meta b{color:#2f2a25}
+.chip{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;background:#efe6da;color:#7a5c3e;margin-right:6px}
+.chip.g{background:#dfeee3;color:#3d6b4c}.chip.r{background:#f7e1dc;color:#9a4a3a}
+h3{font-size:15px;margin:14px 0 6px;color:#5c4a3a}blockquote{margin:6px 0;padding:6px 12px;border-left:3px solid #c9a97f;background:#faf6f0;font-size:15px}
+ul,ol{padding-left:20px;margin:4px 0}li{margin:2px 0}table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border-bottom:1px solid #eee4d8;padding:6px 4px;text-align:left;vertical-align:top}th{color:#7b7067;font-weight:600}
+.tw{overflow-x:auto}.svgw{overflow-x:auto}svg{max-width:100%;height:auto}
+.st td:first-child{white-space:nowrap;font-weight:600;color:#7a5c3e}.note{font-size:13px;color:#7b7067}
+.big{font-size:17px}footer{font-size:12px;color:#998e83;text-align:center;padding:24px 0}
+textarea{width:100%;min-height:220px;font:15px/1.6 inherit;padding:10px;border:1px solid #d9cbb8;border-radius:10px}
+button{background:#7a5c3e;color:#fff;border:0;border-radius:10px;padding:10px 20px;font-size:16px;margin:8px 8px 0 0;cursor:pointer}
+button.s{background:#c9b49a}
+@media(max-width:600px){body{font-size:15px}.card{padding:14px}h1{font-size:20px}}
+</style><meta name="pub-build" content="42cca3888909">
+</head><body><header class="top"><div class="wrap"><h1>爆款文案拆解工具</h1><div class="sub">粘贴口播文案 / 公众号正文 → 自动拆出黄金 3 秒钩子、情绪曲线、段落逻辑</div><nav class="nv"><a href="./">首页 · 往期</a><a href="tool.html">🔍 拆解工具</a></nav></div></header>
+<main class="wrap"><section class="card">
+<p class="note">⚙️ 本工具是<b>纯前端规则自动拆解</b>（分句分段 + 情绪词典打分 + 句式规则），不调用大模型，文本不会上传。结果是参考骨架，请结合人工判断。</p>
+<label class="note">标题（可选）</label><input id="tt" style="width:100%;padding:8px;border:1px solid #d9cbb8;border-radius:10px;font-size:15px" placeholder="例：一旦你理解了神经可塑性，人生将彻底不同">
+<label class="note">正文 / 口播文案</label><textarea id="tx" placeholder="把别人的爆款正文粘贴到这里，按空行或换行分段……"></textarea>
+<button id="go">开始拆解</button><button class="s" id="demo">填入示例（今日日报原文节选）</button><button class="s" id="clr">清空</button>
+</section><div id="out"></div></main>
+<script>
+const POS={"温暖":3,"治愈":3,"美好":3,"幸福":3,"希望":3,"相信":2,"喜欢":2,"开心":2,"快乐":2,"松弛":2,"放松":2,"安心":3,"释然":3,"自由":2,"勇敢":2,"值得":2,"珍贵":3,"丰盛":3,"富有":2,"温柔":3,"爱":2,"光":1,"鲜活":2,"感谢":2,"拥抱":2,"力量":2,"底气":2,"成长":2,"好运":2,"舒服":2,"盛宴":2,"灵感":1,"刻刀":2,"震撼":3,"惊喜":3,"顺利":2,"享受":2};
+const NEG={"焦虑":3,"内耗":3,"痛苦":3,"难过":3,"崩溃":4,"绝望":4,"委屈":3,"害怕":3,"怕":2,"恐惧":3,"累":2,"疲惫":3,"紧绷":2,"孤独":3,"失去":2,"后悔":3,"遗憾":2,"麻烦":2,"嘲笑":3,"伤害":3,"压力":2,"催收":3,"负债":3,"债":2,"垮":3,"死":3,"不够":2,"匮乏":3,"吃亏":2,"讨好":2,"沉默":2,"自责":3,"羞愧":3,"失眠":3,"迷茫":3,"心累":3,"谈资":3,"惹":2,"不行":2,"太晚":2,"被利用":3,"耗尽":3,"挫败":3,"不情愿":2,"吓":2};
+const INT=["真的","一定","千万","永远","彻底","最","非常","特别","太","根本","居然","竟然","！","!"];
+const HOOKS=[
+ ["提问/反问",/[？?]|吗[。！]?$|为什么|怎么|如何|是不是|有没有/],
+ ["反转/反常识",/不是.{0,20}而是|其实|但是|但其实|却|反而|没想到|恰恰|并非|反直觉/],
+ ["数字/清单",/\d+|[一二三四五六七八九十百千万两]+(个|件|种|条|句|点|招|步|年|天|字)/],
+ ["第二人称代入",/你/],
+ ["许可/安慰句",/没关系|也没关系|可以不|允许|不必|不用|别怕|慢慢来|也很好|不要紧|值得被/],
+ ["命令/建议式",/^(记住|千万|一定要|不要|别|请|建议|人生建议)|：$|:$/],
+ ["悬念截断",/[：:]$|这件事|这一点|这个(词|字|认知)|答案是/],
+ ["场景/画面",/(早上|晚上|昨晚|那天|有一天|最近|下午|醒来|床上|地铁|办公室|手机)/],
+ ["自曝/第一人称经历",/^我|我(以前|曾经|发现|陷入|一直|第一次)/]
+];
+const ROLES=[
+ ["行动",/(关注|点赞|在看|转发|收藏|点击|评论区|留言|分享给|推荐|往期)/],
+ ["方法",/(第[一二三四五六七八九十\d]+|方法|做法|步骤|怎么做|建议你|试试|可以这样|首先|其次|最后一|练习|清单)/],
+ ["转折",/(但是|但其实|可是|然而|直到|后来|突然|没想到|不是.{0,15}而是|问题是|为什么)/],
+ ["升华",/(人生|生命|余生|终究|真正的|最好的|写在最后|所以，|愿你|成年人|本质|意义)/],
+ ["共情",/(你是不是|你有没有|我们都|很多人|是不是也|那种感觉|我懂|被说中|委屈|累|焦虑|内耗|难过)/],
+ ["故事/案例",/(有个|有一次|那天|有一天|我认识|朋友|同事|小伙子|她说|他说|研究|实验|发现)/]
+];
+const $=id=>document.getElementById(id);
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function splitParas(t){let ps=t.split(/\n\s*\n/).map(s=>s.trim()).filter(Boolean);
+ if(ps.length<3) ps=t.split(/\n/).map(s=>s.trim()).filter(Boolean);
+ // 口播体（一行几个字）合并：短行累计到 ≥40 字为一段
+ const avg=ps.reduce((a,p)=>a+p.length,0)/Math.max(1,ps.length);
+ if(avg<14&&ps.length>12){const m=[];let cur="";for(const p of ps){cur+=(cur?" ":"")+p;if(cur.length>=40||/^\d+$/.test(p)){m.push(cur);cur="";}}if(cur)m.push(cur);ps=m.filter(x=>!/^\d+$/.test(x.trim()));}
+ return ps.filter(p=>!/^\d+$/.test(p));}
+function sents(p){return p.split(/(?<=[。！？!?；…])|\s{1,}/).map(s=>s.trim()).filter(s=>s.length>1)}
+function score(p){let pos=0,neg=0,hit=[];for(const[k,v]of Object.entries(POS)){const n=p.split(k).length-1;if(n){pos+=v*n;hit.push("+"+k)}}
+ for(const[k,v]of Object.entries(NEG)){const n=p.split(k).length-1;if(n){neg+=v*n;hit.push("−"+k)}}
+ let it=0;for(const k of INT)it+=p.split(k).length-1;
+ const raw=(pos+neg)*(1+0.15*it)/Math.sqrt(Math.max(20,p.length)/20);
+ const v=Math.max(1,Math.min(5,Math.round(1+raw/1.6)));
+ if(/(消散|不再|放下|没关系|释然|走出来|松下来|不怕|治愈了)/.test(p)&&neg){pos+=neg;neg=0;hit.push("↻释放")}
+ const tone=pos>neg*1.2?"正向":neg>pos*1.2?"负向":(pos+neg?"混合":"平静");
+ return {v,tone,hit:hit.slice(0,5)}}
+function hookTypes(s){return HOOKS.filter(([n,r])=>r.test(s)).map(([n])=>n)}
+function role(p,i,n){if(i===0)return "钩子";for(const[r,re]of ROLES)if(re.test(p)){if(r==="升华"&&i<n*0.6)continue;return r}
+ return i>=n-2?"升华":i<=2?"共情":"展开"}
+function curve(sc){const W=640,H=220,pl=30,pr=14,pt=16,pb=40,n=sc.length;
+ const X=i=>pl+(W-pl-pr)*(n>1?i/(n-1):0.5),Y=v=>pt+(H-pt-pb)*(5-v)/4;let g="";
+ for(let v=1;v<=5;v++)g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="#eee4d8"/><text x="6" y="${Y(v)+4}" font-size="11" fill="#998e83">${v}</text>`;
+ const pts=sc.map((s,i)=>`${X(i).toFixed(0)},${Y(s.v).toFixed(0)}`).join(" ");
+ const dots=sc.map((s,i)=>`<circle cx="${X(i).toFixed(0)}" cy="${Y(s.v).toFixed(0)}" r="4" fill="${s.tone==="负向"?"#9a4a3a":s.tone==="正向"?"#3d6b4c":"#b07d4f"}"><title>第${i+1}段 ${s.tone} ${s.v}</title></circle>`+(n<=30||i%Math.ceil(n/30)===0?`<text x="${X(i).toFixed(0)}" y="${H-pb+16}" font-size="10" text-anchor="middle" fill="#7b7067">${i+1}</text>`:"")).join("");
+ return `<div class="svgw"><svg viewBox="0 0 ${W} ${H}">${g}<polyline points="${pts}" fill="none" stroke="#c9a97f" stroke-width="2.5"/>${dots}<text x="${W/2}" y="${H-4}" font-size="11" text-anchor="middle" fill="#998e83">段落序号（绿=正向 红=负向 棕=混合/平静）</text></svg></div>`}
+function run(){const title=$("tt").value.trim(),t=$("tx").value.trim();if(!t){$("out").innerHTML='<div class="card">请先粘贴正文</div>';return}
+ const ps=splitParas(t),n=ps.length,sc=ps.map(score);
+ const first=sents(ps[0]||"").slice(0,2).join(" ");
+ const hk=[];if(title)hk.push(["标题",title,hookTypes(title)]);
+ const op=ps.slice(0,3).join(" ");const fs=sents(op).slice(0,3);
+ fs.forEach(s=>hk.push(["开头",s,hookTypes(s)]));
+ const peak=sc.reduce((m,s,i)=>s.v>sc[m].v?i:m,0);
+ const roles=ps.map((p,i)=>role(p,i,n));
+ const groups=[];roles.forEach((r,i)=>{if(groups.length&&groups[groups.length-1].r===r)groups[groups.length-1].e=i;else groups.push({r,s:i,e:i})});
+ const seq=groups.map(g=>g.r).join(" → ");
+ const has=r=>roles.includes(r);const std=["钩子","共情","转折","方法","升华","行动"];
+ const you=(t.match(/你/g)||[]).length,qs=(t.match(/[？?]/g)||[]).length;
+ let h=`<section class="card"><h2>① 黄金 3 秒钩子</h2><div class="tw"><table><tr><th>位置</th><th>原句</th><th>识别到的钩子类型</th></tr>`+
+ hk.map(([w,s,ty])=>`<tr><td>${w}</td><td>${esc(s)}</td><td>${ty.length?ty.map(x=>`<span class="chip">${x}</span>`).join(""):'<span class="note">未命中规则</span>'}</td></tr>`).join("")+
+ `</table></div><p class="note">全文 ${t.length} 字 · ${n} 段 · “你” 出现 ${you} 次 · 问号 ${qs} 个。钩子越早出现（标题+前两句）越好；常见强钩子：提问、反转、数字、第二人称、许可句。</p></section>`;
+ h+=`<section class="card"><h2>② 情绪曲线</h2>${curve(sc)}<p class="note">情绪峰值：第 ${peak+1} 段（强度 ${sc[peak].v}/5）——「${esc(ps[peak].slice(0,60))}${ps[peak].length>60?"…":""}」</p>
+ <div class="tw"><table><tr><th>段</th><th>强度</th><th>倾向</th><th>命中词</th></tr>${sc.map((s,i)=>`<tr><td>${i+1}</td><td>${s.v}</td><td>${s.tone}</td><td class="note">${s.hit.join(" ")}</td></tr>`).join("")}</table></div></section>`;
+ h+=`<section class="card"><h2>③ 段落逻辑结构</h2><p><b>${esc(seq)}</b></p><p class="note">对照标准骨架「钩子-共情-转折-方法-升华-行动」：${std.map(r=>has(r)?`<span class="chip g">✓${r}</span>`:`<span class="chip r">✗${r}</span>`).join("")}</p>
+ <div class="tw"><table class="st">${groups.map(g=>`<tr><td>${g.r}</td><td class="note">第${g.s+1}${g.e>g.s?"–"+(g.e+1):""}段</td><td>${esc(ps[g.s].slice(0,70))}${ps[g.s].length>70?"…":""}</td></tr>`).join("")}</table></div></section>`;
+ $("out").innerHTML=h;$("out").scrollIntoView({behavior:"smooth"})}
+$("go").onclick=run;$("clr").onclick=()=>{$("tx").value="";$("tt").value="";$("out").innerHTML=""};
+$("demo").onclick=()=>{$("tt").value=DEMO_T;$("tx").value=DEMO;run()};
+const DEMO_T="人生建议：不要放弃下午四点";const DEMO="广东的秋天是很舒服的季节，天气没有那么潮湿，温度大部分时候也比较适宜，不下雨的时候天空湛蓝，云朵像棉花糖一样柔软。\n\n最近我总是在下午4点出门，去公园散步晒太阳。\n\n一天中最适合晒太阳的时候，除了上午10点前，就是下午4点以后了。这个时候紫外线没有那么强，阳光还比较充足。微风裹挟着草木香迎面吹来，让人感觉很舒服。\n\n现在这个季节18:00左右落日，落日前半个小时是欣赏夕阳最合适的时间。所以，4点出门，晒完太阳，可以欣赏夕阳和晚霞。\n\n阳光、树影、夕阳、晚霞、微风、花香，下午四点以后出门，就好像经历了一场大自然的盛宴。它绚丽多彩却又无声无息，让我在平淡的日子里也能感受到生命的鲜活与美好。\n\n每当此时，我脑海里就会闪现出一句话：“不要放弃下午四点。”\n\n1\n\n下午四点不是尾声而是留白\n\n“留白不是空白，是生活真正开始呼吸的地方。”\n\n提到下午四点，不管想做什么，我们内心总会有一个想法：“太晚了，明天再说吧。”但其实，下午四点并不是一天的尾声，而是时间的留白。\n\n年轻人普遍睡眠比较晚，拿我自己来说，我通常11点前睡觉，从下午4点到晚上11点，还有整整7个小时，完全可以做很多事情。\n\n4点钟出门去公园，晒太阳、吹风、感受落日与晚霞，一天中积累的疲惫、紧绷和焦虑会在不知不觉中消散。\n\n6点钟太阳落山，我刚好到家，吃完饭之后坐在书桌前，仿佛新的一天又开始了。\n\n4点到6点的留白时刻，让我的一天变得更丰盈，也让我的脑海里多了很多写作的灵感。\n\n2\n\n何时出发都不算晚\n\n《本杰明・巴顿奇事》中有一句台词：“只要是值得做的事，永远都不怕晚。”\n\n每个人脑海里都会有很多想要实现的想法，比如想学一门新技能、想换一个新的职业方向，想去远方，但念头一起就会告诉自己：“现在太晚了，再年轻几岁正合适。”\n\n我们总是会用「太晚了」来劝退自己，可「太晚了」往往不是事实，而是恐惧的伪装：怕做不好，怕比不上别人，怕重新开始显得笨拙，怕投入了却没有结果。\n\n就拿做自媒体这件事情来说，很多人都想尝试，但总是害怕太晚：我现在开始写公众号还来得及吗？我想拍vlog，但这个赛道已经饱和了，现在开始是不是太晚了？\n\n实际上，不管是文字内容还是视频内容，不管是很卷的vlog赛道还是口播赛道，只要你愿意，何时出发都不算晚。\n\n只要你确定一件事是值得做的，那就勇敢出发，不要给自己留遗憾。\n\n写在最后：\n\n玛丽·奥利弗在《夏日》里问：“告诉我，你打算如何对待你那仅此一次的、狂野而珍贵的生命？”\n\n我想，答案不在某一个宏大的决定里，而藏在无数个像下午四点这样微小的时刻。\n\n不要放弃下午四点，不要轻易认定为时已晚。当下此刻，永远是生命中最值得好好对待的时刻。";
+</script>
+
+<footer>公众号爆款拆解日报 · 疗愈赛道 · 数据来源 TikHub（微信公众号接口），阅读/点赞/在看为抓取时快照</footer></body></html>
